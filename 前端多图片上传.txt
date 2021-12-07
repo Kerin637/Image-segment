@@ -1,0 +1,121 @@
+<!--用来实验多文件上传-->
+<template>
+  <div>
+    <el-upload
+      ref="upload"
+      action="http://127.0.0.1:8000/pictures"
+      :auto-upload="false"
+      :file-list="fileList"
+      list-type="picture-card"
+      :http-request="uploadFile"
+      :limit="limit"
+      :on-change="changePic"
+      :on-preview="handlePictureCardPreview"
+      :on-remove="handleRemove"
+      :multiple="true">
+      <i class="el-icon-plus"></i>
+
+      <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+    </el-upload>
+    <el-dialog :visible.sync="dialogVisible">
+      <img width="100%" :src="dialogImageUrl" alt="">
+    </el-dialog>
+    <p class="picNum">{{picNum}}/{{ limit }}</p>
+    <el-button size="small" type="primary" @click="submitTask">确认提交</el-button>
+
+
+  </div>
+</template>
+
+<script>
+import {addPictures} from "../../api/api";
+
+export default {
+  data() {
+    return {
+      limit:2,
+      picNum:0,
+      dialogImageUrl:'',
+      dialogVisible:false,
+      formDate:'',
+      fileList: [],
+      header:{
+        token:window.sessionStorage.getItem('token')
+      }
+    };
+  },
+  methods: {
+    uploadFile(file){
+      //上传时会调用这个函数,如果auto-upload为true，则上传一张就会立刻传到后端，如果设为false，只有调用submitTask时才会一次性上传
+      this.formDate = new FormData();
+      // console.log("是这里输出的吗？");
+      // console.log(file.file);
+      // console.log(typeof(file.file));
+      // console.log("上面是类型");
+      this.formDate.append('origin',file.file);
+      this.formDate.append('result',file.file);
+      addPictures(this.formDate).then((response)=> {
+        // this.getPicture();
+        alert("提交成功");
+      }).catch(function (error) {
+        console.log(error);
+      });
+    },
+    handlePictureCardPreview(file){
+      this.dialogImageUrl = file.url;
+      this.dialogVisible = true;
+    },
+    submitTask(){
+      this.$refs.upload.submit();//只需这一句代码即可在非自动上传的情况下将图片发送到后端
+      // console.log("看看第一个文件到底是个啥");
+      // console.log(this.fileList[0]);
+      // console.log(typeof(this.fileList[0]));
+      // for(let i=0;i<this.fileList.length;i++){
+      //   this.formDate = new FormData();
+      //   this.formDate.append('origin',this.fileList[i]);
+      //   this.formDate.append('result',this.fileList[i]);
+      //   addPictures(this.formDate).then((response)=> {
+      //     // this.getPicture();
+      //     alert("提交成功");
+      //   }).catch(function (error) {
+      //     console.log(error);
+      //   });
+      // }
+      // this.formDate.append('userid',localStorage.getItem('userid'));
+      // this.formDate.append('id',this.$route.params.id);
+      // addPictures(this.formDate).then((response)=> {
+      //   // this.getPicture();
+      //   alert("提交成功");
+      // }).catch(function (error) {
+      //   console.log(error);
+      // });
+
+    },
+    handleRemove(file, fileList) {
+      // console.log("这是删除了");
+      // console.log(file);
+      // console.log("当前fileList的长度");
+      // console.log(fileList.length);
+      this.picNum=this.picNum-1;
+      // this.fileList=fileList;
+    },
+    handlePreview(file) {
+      console.log(file);
+    },
+    changePic(file,fileList){
+      this.picNum=this.picNum+1;
+      // this.fileList=fileList;
+    }
+  }
+}
+</script>
+<style>
+.styleA .el-upload--picture-card{
+  width:110px;
+  height:110px;
+  line-height:110px;
+}
+.styleB .el-upload--picture-card{
+  display:none;
+}
+</style>
